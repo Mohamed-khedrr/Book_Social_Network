@@ -22,9 +22,8 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
-
-   private final  JwtService jwtService ;
-   private final UserDetailsService userDetailsService;
+    private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -32,15 +31,19 @@ public class JwtFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         final String userToken = request.getHeader(AUTHORIZATION);
-        final String jwt ;
-        final String userEmail ;
+        final String jwt;
+        final String userEmail;
+
         if (userToken == null || !userToken.startsWith("Bearer ")) {
+            // Continue the filter chain if the token is not present or invalid
+            filterChain.doFilter(request, response);
             return;
         }
 
-//        Extract JWT Token
-        jwt = userToken.substring(7) ;
+        // Extract JWT Token
+        jwt = userToken.substring(7);
         userEmail = jwtService.extractUsername(jwt);
+
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
             if (jwtService.isTokenValid(jwt, userDetails)) {
@@ -50,8 +53,9 @@ public class JwtFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
-
         }
-        filterChain.doFilter(request , response  );
+
+        // Always continue the filter chain
+        filterChain.doFilter(request, response);
     }
 }
