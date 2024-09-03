@@ -9,6 +9,7 @@ import com.project.book.user.TokenRepository;
 import com.project.book.user.User;
 import com.project.book.user.UserRepository;
 import jakarta.mail.MessagingException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -103,7 +104,7 @@ public class AuthenticationService {
                         request.getPassword()
                 )
         );
-        var user = (User) auth.getPrincipal() ;
+        var user = ((User) auth.getPrincipal()) ;
 
 //        Extra claims provided in the token
         HashMap<String, Object> claims = new HashMap<>();
@@ -111,9 +112,28 @@ public class AuthenticationService {
         claims.put("id", user.getId());
 
         String jwtToken = jwtService.generateToken(claims , user);
-
+//            String jwtToken  = "Hello" ;
         return LoginResponse.builder()
                 .token(jwtToken)
                 .build() ;
+    }
+
+    @Transactional
+    public void activateAccount(String token) throws MessagingException {
+        Token savedToken = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid token"));
+
+        if(LocalDateTime.now().isAfter(savedToken.getExpiresAt())){
+            sendValidationEmail(savedToken.getUser());
+            throw new RuntimeException("Activation token expired , A new token has been sent");
+        }
+
+        User user = userRepository.findById(savedToken.getUser().getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setEnabled(true);
+        userRepository.save(user);
+        savedToken.setValidatedAt(LocalDateTime.now());
+        tokenRepository.save(savedToken);
     }
 }

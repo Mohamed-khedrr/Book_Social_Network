@@ -31,7 +31,7 @@ spring:
   application:
     security :
       jwt :
-        secret-key: hello
+        secret-key: YXJ0aWNsZXB1dGFtb3VudHNvbGRpZXJrbm93bmhlYXJ0cHV0dGluZ2pveXRoeXBvdXI=
         expiration: 86400000
     mailing:
       frontend:

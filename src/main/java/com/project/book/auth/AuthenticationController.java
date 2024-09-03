@@ -22,11 +22,15 @@ public class AuthenticationController {
         return ResponseEntity.accepted().build();
     }
 
-    @ResponseStatus(HttpStatus.ACCEPTED)
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
             @RequestBody @Valid LoginRequest request
     ){
         return  ResponseEntity.ok(authenticationService.login(request)) ;
+    }
+
+    @GetMapping("/activate-account")
+    public void activateAccount(@RequestParam("activation-token") String token) throws MessagingException {
+        authenticationService.activateAccount(token) ;
     }
 }
