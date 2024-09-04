@@ -28,7 +28,7 @@ import java.util.List;
 public class Book extends AuditingBaseEntity {
     private String title ;
     private String author ;
-    private int bookNumber ;
+    private Integer bookNumber ;
     private String about ;
     private String bookCover ;
     private boolean archived ;
