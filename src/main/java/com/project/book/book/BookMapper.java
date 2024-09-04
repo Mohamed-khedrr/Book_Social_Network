@@ -14,4 +14,19 @@ public class BookMapper {
                 .archived(false)
                 .build() ;
     }
+
+    public BookResponse toBookResponse(Book book) {
+        return BookResponse.builder()
+                .id(book.getId())
+                .title(book.getTitle())
+                .author(book.getAuthor())
+                .about(book.getAbout())
+                .bookNumber(book.getBookNumber())
+                .shareable(book.isShareable())
+                .archived(book.isArchived())
+                .ownerName(book.getOwner().getFullName())
+                .rate(book.getRate())
+//                .bookCover()
+                .build() ;
+    }
 }

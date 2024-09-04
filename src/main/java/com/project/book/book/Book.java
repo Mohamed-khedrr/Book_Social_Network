@@ -43,6 +43,20 @@ public class Book extends AuditingBaseEntity {
     @OneToMany(mappedBy = "book")
     private List<BookTransactionHistory> histories ;
 
+    @Transient
+    public double getRate(){
+        if (feedbacks == null || feedbacks.isEmpty())return  0 ;
+
+        double rate = this.feedbacks
+                .stream()
+                .mapToDouble(Feedback::getNote)
+                .average()
+                .orElse(0);
+
+        return Math.round(rate * 10.0) / 10.0 ;
+
+
+    }
 
 
 }
