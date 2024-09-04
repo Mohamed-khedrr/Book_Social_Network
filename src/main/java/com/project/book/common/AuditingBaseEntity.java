@@ -1,6 +1,5 @@
-package com.project.book.book;
+package com.project.book.common;
 
-import com.project.book.common.AuditingBaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,15 +19,25 @@ import java.time.LocalDateTime;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-public class Book extends AuditingBaseEntity {
-    private String title ;
-    private String author ;
-    private int bookNumber ;
-    private String about ;
-    private String bookCover ;
-    private boolean archived ;
-    private boolean shareable;
 
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
+public class AuditingBaseEntity {
 
+    @Id
+    @GeneratedValue
+    private Integer id ;
+
+    @CreatedDate
+    @Column(nullable = false , updatable = false )
+    private LocalDateTime creationDate ;
+    @LastModifiedDate
+    @Column(insertable = false )
+    private LocalDateTime modificationDate ;
+    @CreatedBy
+    @Column(nullable = false , updatable = false )
+    private Integer createdBy ;
+    @LastModifiedBy
+    @Column(insertable = false )
+    private Integer modifiedBy ;
 }
