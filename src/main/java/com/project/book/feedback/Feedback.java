@@ -1,5 +1,6 @@
 package com.project.book.feedback;
 
+import com.project.book.book.Book;
 import com.project.book.common.AuditingBaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,4 +20,7 @@ import java.time.LocalDateTime;
 public class Feedback extends AuditingBaseEntity {
     private double note ;
     private String comment ;
+
+    @ManyToOne()
+    private Book book ;
 }

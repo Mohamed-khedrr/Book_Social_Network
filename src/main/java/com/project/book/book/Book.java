@@ -1,6 +1,9 @@
 package com.project.book.book;
 
 import com.project.book.common.AuditingBaseEntity;
+import com.project.book.feedback.Feedback;
+import com.project.book.history.BookTransactionHistory;
+import com.project.book.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,6 +17,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -29,6 +33,16 @@ public class Book extends AuditingBaseEntity {
     private String bookCover ;
     private boolean archived ;
     private boolean shareable;
+
+    @ManyToOne
+    private User owner ;
+
+    @OneToMany(mappedBy = "book")
+    private List<Feedback> feedbacks ;
+
+    @OneToMany(mappedBy = "book")
+    private List<BookTransactionHistory> histories ;
+
 
 
 }
