@@ -15,15 +15,13 @@ public record BookRequest(
         String author,
 
         @NotNull(message = "102")
-        @NotEmpty(message = "102")
-        int bookNumber,
+        Integer bookNumber,
 
         @NotNull(message = "103")
         @NotEmpty(message = "103")
         String about,
 
         @NotNull(message = "104")
-        @NotEmpty(message = "104")
         boolean shareable
 ) {
 }
