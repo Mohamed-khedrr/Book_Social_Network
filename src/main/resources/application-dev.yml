@@ -38,7 +38,7 @@ spring:
         activation-url: http://localhost:4200/activate-account
     file:
       upload:
-        photos-output-path: ./uploads
+        photos-output-path: uploads
 
 server:
   port: 8088
