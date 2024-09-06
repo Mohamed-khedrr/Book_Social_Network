@@ -1,6 +1,7 @@
 package com.project.book.book;
 
 import com.project.book.common.PageResponse;
+import com.project.book.file.FileUtils;
 import com.project.book.history.BookTransactionHistory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,7 @@ public class BookMapper {
                 .archived(book.isArchived())
                 .ownerName(book.getOwner().getFullName())
                 .rate(book.getRate())
-//                .bookCover()
+                .bookCover(FileUtils.readFileFromLocation(book.getBookCover()))
                 .build() ;
     }
 

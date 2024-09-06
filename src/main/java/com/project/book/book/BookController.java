@@ -7,6 +7,7 @@ import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("book")
@@ -98,4 +99,22 @@ public class BookController {
     ){
         return ResponseEntity.ok(bookService.approveReturnBorrowedBook(bookId , currentUserAuth)) ;
     }
+
+
+    @PostMapping(value = "/cover/{book-id}", consumes = "multipart/form-data")
+    public ResponseEntity<?> uploadBookCover(
+        @PathVariable("book-id") Integer bookId ,
+        @RequestPart("file") MultipartFile file ,
+        Authentication currentUserAuth
+        ){
+        bookService.uploadBookCover(bookId , file , currentUserAuth );
+        return ResponseEntity.accepted().build();
+    }
+
+
+
+
+
+
+
 }
