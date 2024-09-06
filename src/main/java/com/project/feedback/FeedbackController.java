@@ -1,13 +1,13 @@
 package com.project.feedback;
 
+import com.project.common.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("feedback")
@@ -24,6 +24,15 @@ public class FeedbackController {
         return ResponseEntity.ok(feedbackService.save(request , currentUserAuth)) ;
     }
 
+
+    @GetMapping("/book/{book-id}")
+    public ResponseEntity<PageResponse<FeedbackResponse>> getBookFeedback(
+            @PathVariable("book-id") Integer bookId ,
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+            Authentication currentUserAuth) {
+        return ResponseEntity.ok(feedbackService.getBookFeedbacks(bookId, currentUserAuth , page , size)) ;
+    }
 
 
 

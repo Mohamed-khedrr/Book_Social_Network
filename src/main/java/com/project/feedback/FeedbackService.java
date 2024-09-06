@@ -2,13 +2,19 @@ package com.project.feedback;
 
 import com.project.book.Book;
 import com.project.book.BookRepository;
+import com.project.common.PageResponse;
 import com.project.exception.OperationNotPermittedException;
 import com.project.user.User;
 import com.project.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -35,9 +41,21 @@ public class FeedbackService {
     }
 
 
-
-
-
-
-
+    public PageResponse<FeedbackResponse> getBookFeedbacks(Integer bookId, Authentication currentUserAuth, int page, int size) {
+        User user = (User) currentUserAuth.getPrincipal() ;
+        Pageable pageable = PageRequest.of(page, size) ;
+        Page<Feedback> feedbacks = feedbackRepository.findAllByBookId(bookId , pageable) ;
+        List<FeedbackResponse> feedbackResponses = feedbacks.stream()
+                .map(feed -> feedbackMapper.toFeedbackResponse(feed , user.getId()))
+                .toList() ;
+        return new PageResponse<>(
+                feedbackResponses,
+                feedbacks.getNumber(),
+                feedbacks.getSize(),
+                feedbacks.getTotalPages(),
+                feedbacks.getTotalElements(),
+                feedbacks.isFirst(),
+                feedbacks.isLast()
+        );
+    }
 }
