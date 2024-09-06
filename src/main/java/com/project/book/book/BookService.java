@@ -7,6 +7,7 @@ import com.project.book.history.TransactionHistoryRepository;
 import com.project.book.user.User;
 import com.project.book.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
@@ -142,7 +143,7 @@ public class BookService {
         Book book = bookRepository.findById(bookId).orElseThrow(()-> new EntityNotFoundException("Book not found") ) ;
         if(book.isArchived() || !book.isShareable() )
             throw new OperationNotPermittedException("Book not available for borrowing") ;
-        if(!book.getOwner().getId().equals(user.getId()))
+        if(book.getOwner().getId().equals(user.getId()))
             throw new OperationNotPermittedException("You are the owner of the book already");
 
         final boolean isBookBorrowed = transactionHistoryRepository.isBookBorrowed(bookId , user.getId()) ;
@@ -157,5 +158,14 @@ public class BookService {
 
     }
 
+    public Integer returnBorrowedBook(Integer bookId, Authentication currentUserAuth) {
+        User user = (User) currentUserAuth.getPrincipal() ;
 
+        BookTransactionHistory transaction = transactionHistoryRepository.getBorrowedBook(bookId , user.getId())
+                        .orElseThrow(() -> new EntityNotFoundException("Book Is Not Borrowed"));
+
+        transaction.setReturned(true);
+        return transactionHistoryRepository.save((transaction)).getId() ;
+
+    }
 }
