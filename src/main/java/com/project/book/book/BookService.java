@@ -1,6 +1,7 @@
 package com.project.book.book;
 
 import com.project.book.common.PageResponse;
+import com.project.book.exception.OperationNotPermittedException;
 import com.project.book.history.BookTransactionHistory;
 import com.project.book.history.TransactionHistoryRepository;
 import com.project.book.user.User;
@@ -140,13 +141,13 @@ public class BookService {
         User user = (User) currentUserAuth.getPrincipal() ;
         Book book = bookRepository.findById(bookId).orElseThrow(()-> new EntityNotFoundException("Book not found") ) ;
         if(book.isArchived() || !book.isShareable() )
-            throw new RuntimeException("Book not available for borrowing") ;
+            throw new OperationNotPermittedException("Book not available for borrowing") ;
         if(!book.getOwner().getId().equals(user.getId()))
-            throw new RuntimeException("You are the owner of the book already");
+            throw new OperationNotPermittedException("You are the owner of the book already");
 
         final boolean isBookBorrowed = transactionHistoryRepository.isBookBorrowed(bookId , user.getId()) ;
         if (isBookBorrowed)
-            throw new RuntimeException("Your already borrowed the book"); ;
+            throw new OperationNotPermittedException("Your already borrowed the book"); ;
 
         BookTransactionHistory trans = BookTransactionHistory.builder()
                 .book(book)
