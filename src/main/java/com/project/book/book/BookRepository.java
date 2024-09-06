@@ -15,4 +15,14 @@ public interface BookRepository extends JpaRepository<Book , Integer> {
     
 """)
     Page<Book> findAllShareableBooks(Pageable pageable, Integer userId);
+
+    @Query("""
+    SELECT book
+    FROM Book book
+    WHERE book.owner.id = :userId
+    AND book.archived = false 
+    AND book.shareable = true
+""")
+    Page<Book> findAllByUserId(Integer userId, Pageable pageable);
+
 }

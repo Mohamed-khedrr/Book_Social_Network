@@ -1,7 +1,11 @@
 package com.project.book.book;
 
+import com.project.book.common.PageResponse;
+import com.project.book.history.BookTransactionHistory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 @Service
 public class BookMapper {
     public Book toBook(BookRequest request) {
@@ -28,5 +32,18 @@ public class BookMapper {
                 .rate(book.getRate())
 //                .bookCover()
                 .build() ;
+    }
+
+    public BorrowedBooksResponse toBorrowedBookResponse(BookTransactionHistory history) {
+        Book book = history.getBook() ;
+        return BorrowedBooksResponse.builder()
+                .bookId(book.getId())
+                .title(book.getTitle())
+                .authorName(book.getAuthor())
+                .about(book.getAbout())
+                .rate(book.getRate())
+                .archived(book.isArchived())
+                .returnApproved(history.isReturnApproved())
+                .build();
     }
 }

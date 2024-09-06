@@ -1,14 +1,18 @@
 package com.project.book.book;
 
 import com.project.book.common.PageResponse;
+import com.project.book.history.BookTransactionHistory;
+import com.project.book.history.TransactionHistoryRepository;
 import com.project.book.user.User;
 import com.project.book.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +24,7 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+    private final TransactionHistoryRepository transactionHistoryRepository ;
     private final BookMapper bookMapper;
 
     public Integer save(BookRequest request, Authentication ownerUser) {
@@ -45,7 +50,7 @@ public class BookService {
                 .map(bookMapper::toBookResponse)
                 .toList();
 
-        return new PageResponse<BookResponse>(
+        return new PageResponse<>(
                 bookResponses,books.getNumber(),
                 books.getSize() ,
                 books.getTotalPages() ,
@@ -54,4 +59,102 @@ public class BookService {
                 books.isLast()
         );
     }
+
+    public PageResponse<BookResponse> findAllUserBooks(int page, int size, Authentication currentUserAuth) {
+        User user = (User) currentUserAuth.getPrincipal();
+        Pageable pageable = PageRequest.of(page , size , Sort.by("creationDate").descending()) ;
+        Page<Book> books =bookRepository.findAllByUserId(user.getId() , pageable);
+
+        List<BookResponse> bookResponses= books.stream()
+                .map(bookMapper::toBookResponse)
+                .toList() ;
+
+        return new PageResponse <>(
+                bookResponses,
+                books.getNumber(),
+                books.getSize() ,
+                books.getTotalPages() ,
+                books.getTotalElements(),
+                books.isFirst() ,
+                books.isLast()
+        );
+    }
+
+    public PageResponse<BorrowedBooksResponse> findAllBorrowedBooks(int page, int size, Authentication currentUserAuth) {
+        User user = (User) currentUserAuth.getPrincipal() ;
+        Pageable pageable = PageRequest.of(page , size , Sort.by("creationDate").descending()) ;
+        Page<BookTransactionHistory> books = transactionHistoryRepository.findAllBorrowedBooks(user.getId() , pageable);
+        List<BorrowedBooksResponse> borrowedBooksResponses = books.stream()
+                .map(bookMapper::toBorrowedBookResponse).toList() ;
+        return new PageResponse<>(
+                borrowedBooksResponses ,
+                books.getNumber(),
+                books.getSize() ,
+                books.getTotalPages() ,
+                books.getTotalElements(),
+                books.isFirst() ,
+                books.isLast()
+        );
+    }
+
+    public PageResponse<BorrowedBooksResponse> findAllReturnedBooks(int page, int size, Authentication currentUserAuth) {
+
+        User user = (User) currentUserAuth.getPrincipal() ;
+        Pageable pageable = PageRequest.of(page , size , Sort.by("creationDate").descending()) ;
+        Page<BookTransactionHistory> books = transactionHistoryRepository.findAllReturnedBooks(user.getId() , pageable);
+        List<BorrowedBooksResponse> borrowedBooksResponses = books.stream()
+                .map(bookMapper::toBorrowedBookResponse).toList() ;
+        return new PageResponse<>(
+                borrowedBooksResponses ,
+                books.getNumber(),
+                books.getSize() ,
+                books.getTotalPages() ,
+                books.getTotalElements(),
+                books.isFirst() ,
+                books.isLast()
+        );    }
+
+    public ResponseEntity<?> updateShareable(Integer bookId, Authentication currentUserAuth) {
+        Book book = bookRepository.findById(bookId).orElseThrow(()-> new EntityNotFoundException("Book not found") ) ;
+        User user = (User) currentUserAuth.getPrincipal() ;
+        if(!book.getOwner().getId().equals(user.getId()))
+            return ResponseEntity.badRequest().body("Not The Owner of The book");
+
+        book.setShareable(!book.isShareable());
+        bookRepository.save(book);
+        return ResponseEntity.ok(book.getId()) ;
+    }
+
+    public ResponseEntity<?> updateArchived(Integer bookId, Authentication currentUserAuth) {
+        Book book = bookRepository.findById(bookId).orElseThrow(()-> new EntityNotFoundException("Book not found") ) ;
+        User user = (User) currentUserAuth.getPrincipal() ;
+
+        if(!book.getOwner().getId().equals(user.getId()))
+            return ResponseEntity.badRequest().body("Not The Owner of The book");
+
+        book.setArchived(!book.isArchived());
+        bookRepository.save(book);
+        return ResponseEntity.ok(book.getId()) ;    }
+
+    public Integer borrowBook(Integer bookId, Authentication currentUserAuth) {
+        User user = (User) currentUserAuth.getPrincipal() ;
+        Book book = bookRepository.findById(bookId).orElseThrow(()-> new EntityNotFoundException("Book not found") ) ;
+        if(book.isArchived() || !book.isShareable() )
+            throw new RuntimeException("Book not available for borrowing") ;
+        if(!book.getOwner().getId().equals(user.getId()))
+            throw new RuntimeException("You are the owner of the book already");
+
+        final boolean isBookBorrowed = transactionHistoryRepository.isBookBorrowed(bookId , user.getId()) ;
+        if (isBookBorrowed)
+            throw new RuntimeException("Your already borrowed the book"); ;
+
+        BookTransactionHistory trans = BookTransactionHistory.builder()
+                .book(book)
+                .user(user)
+                .build();
+        return  transactionHistoryRepository.save(trans).getId() ;
+
+    }
+
+
 }

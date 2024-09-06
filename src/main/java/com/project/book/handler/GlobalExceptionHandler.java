@@ -1,6 +1,7 @@
 package com.project.book.handler;
 
 import jakarta.mail.MessagingException;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -71,6 +72,8 @@ public class GlobalExceptionHandler {
                         .build()) ;
     }
 
+
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExceptionResponse> handleException(Exception e){
         e.printStackTrace();
@@ -81,4 +84,6 @@ public class GlobalExceptionHandler {
                         .error(e.getMessage())
                         .build()) ;
     }
+
+
 }
