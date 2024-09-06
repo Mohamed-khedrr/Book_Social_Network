@@ -7,9 +7,7 @@ import com.project.book.history.TransactionHistoryRepository;
 import com.project.book.user.User;
 import com.project.book.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -140,7 +138,8 @@ public class BookService {
 
     public Integer borrowBook(Integer bookId, Authentication currentUserAuth) {
         User user = (User) currentUserAuth.getPrincipal() ;
-        Book book = bookRepository.findById(bookId).orElseThrow(()-> new EntityNotFoundException("Book not found") ) ;
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(()-> new EntityNotFoundException("Book not found") ) ;
         if(book.isArchived() || !book.isShareable() )
             throw new OperationNotPermittedException("Book not available for borrowing") ;
         if(book.getOwner().getId().equals(user.getId()))
@@ -161,11 +160,27 @@ public class BookService {
     public Integer returnBorrowedBook(Integer bookId, Authentication currentUserAuth) {
         User user = (User) currentUserAuth.getPrincipal() ;
 
-        BookTransactionHistory transaction = transactionHistoryRepository.getBorrowedBook(bookId , user.getId())
+        BookTransactionHistory transaction = transactionHistoryRepository.findBorrowedBooksByBookIdUserId(bookId , user.getId())
                         .orElseThrow(() -> new EntityNotFoundException("Book Is Not Borrowed"));
 
         transaction.setReturned(true);
         return transactionHistoryRepository.save((transaction)).getId() ;
 
+    }
+
+    public Integer approveReturnBorrowedBook(Integer bookId, Authentication currentUserAuth) {
+        User user = (User) currentUserAuth.getPrincipal() ;
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(()-> new EntityNotFoundException("Book not found") ) ;
+        if(book.isArchived() || !book.isShareable() )
+            throw new OperationNotPermittedException("Book not available for borrowing") ;
+        if(!book.getOwner().getId().equals(user.getId()))
+            throw new OperationNotPermittedException("You are not the owner of the book");
+
+        BookTransactionHistory transaction = transactionHistoryRepository.findBorrowedBooksByBookIdOwnerId(bookId , user.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Book Is Not Borrowed"));
+        transaction.setReturnApproved(true);
+
+        return transactionHistoryRepository.save(transaction).getId();
     }
 }
