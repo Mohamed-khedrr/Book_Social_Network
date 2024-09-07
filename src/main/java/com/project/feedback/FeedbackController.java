@@ -1,6 +1,7 @@
 package com.project.feedback;
 
 import com.project.common.PageResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("feedback")
 @RequiredArgsConstructor
+@Tag(name = "Feedback")
 public class FeedbackController {
     private final FeedbackService feedbackService ;
 
@@ -33,6 +35,7 @@ public class FeedbackController {
             Authentication currentUserAuth) {
         return ResponseEntity.ok(feedbackService.getBookFeedbacks(bookId, currentUserAuth , page , size)) ;
     }
+
 
 
 

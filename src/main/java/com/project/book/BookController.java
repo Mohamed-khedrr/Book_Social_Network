@@ -1,6 +1,7 @@
 package com.project.book;
 
 import com.project.common.PageResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("book")
 @RequiredArgsConstructor
+@Tag(name = "Book")
 public class BookController {
     private final BookService bookService ;
 
